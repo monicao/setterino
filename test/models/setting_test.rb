@@ -6,6 +6,19 @@ describe Setting do
       Setting.store("admin_email", "admin@gmail.com").must_equal true
     end
 
+    it "should update a value" do
+      Setting.store "admin_email", "admin@gmail.com"
+      Setting.store "admin_email", "new_admin@gmail.com"
+      Setting.count.must_equal 1
+      Setting.last.reload.value.must_equal "new_admin@gmail.com"
+    end
+
+    it "should not save a setting without a value" do
+      proc do
+        Setting.store nil, "blah"
+      end.must_raise Setting::InvalidKey
+    end
+
     it "must raise a ValueTooLong exception when the value is too long" do
       proc do
         Setting.store("max_connect_retry", "c" * 254)
@@ -14,7 +27,7 @@ describe Setting do
 
     it "must raise a DatabaseError if anything else goes wrong with saving to the database" do
       fake_ar_exception = ActiveRecord::ActiveRecordError.new "Shhhh! I'm hunting wabbits!"
-      Setting.expects(:create!).raises(fake_ar_exception)
+      Setting.any_instance.expects(:save!).raises(fake_ar_exception)
       proc do
         Setting.store("max_connect_retry", 4)
       end.must_raise Setting::DatabaseError, "Shhhh! I'm hunting wabbits!"
