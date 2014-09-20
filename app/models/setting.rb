@@ -18,6 +18,7 @@ class Setting < ActiveRecord::Base
         setting.value = value
         setting.save!
       end
+      Rails.cache.write "setting/#{key}", value
     rescue ActiveRecord::RecordInvalid => e
       raise InvalidKey, e.message
     rescue ActiveRecord::ActiveRecordError => e
@@ -27,7 +28,9 @@ class Setting < ActiveRecord::Base
   end
 
   def self.get(key)
-    self.find_by(key: key).try(:value)
+    Rails.cache.fetch "setting/#{key}" do
+      self.find_by(key: key).try(:value)
+    end
   rescue ActiveRecord::ActiveRecordError => e
     raise DatabaseError, e.message
   end
