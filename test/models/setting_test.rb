@@ -11,6 +11,11 @@ describe Setting do
       Setting.store("admin_email", "admin@gmail.com").must_equal true
     end
 
+    it "should accept symbols for the setting keys" do
+      Setting.store :max_connect_retry, 4
+      Setting.get("max_connect_retry").must_equal 4
+    end
+
     it "should update a value" do
       Setting.store "admin_email", "admin@gmail.com"
       Setting.store "admin_email", "new_admin@gmail.com"
@@ -43,6 +48,11 @@ describe Setting do
     it "should retrieve a value in the original data type" do
       Setting.store "max_connect_retry", 4
       Setting.get("max_connect_retry").must_equal 4
+    end
+
+    it "should accept symbols for the setting keys" do
+      Setting.store "max_connect_retry", 4
+      Setting.get(:max_connect_retry).must_equal 4
     end
 
     it "should return nil if the key does not exist" do
