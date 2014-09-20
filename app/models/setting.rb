@@ -13,4 +13,10 @@ class Setting < ActiveRecord::Base
     raise DatabaseError, e.message
   end
 
+  def self.get(key)
+    self.find_by(key: key).try(:value)
+  rescue ActiveRecord::ActiveRecordError => e
+    raise DatabaseError, e.message
+  end
+
 end
