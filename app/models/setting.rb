@@ -11,20 +11,15 @@ class Setting < ActiveRecord::Base
 
   def self.store(key, value)
     raise ValueTooLong if value.to_json.length > MAX_VALUE_LENGTH
-    setting = nil
     begin
-      Setting.transaction do
-        setting = self.find_by(key: key) || self.new(key: key)
-        setting.value = value
-        setting.save!
-      end
-      Rails.cache.write "setting/#{key}", value
+      setting = self.create_or_update key, value
+      self.invalidate_cache! key
+      setting.persisted?
     rescue ActiveRecord::RecordInvalid => e
       raise InvalidKey, e.message
     rescue ActiveRecord::ActiveRecordError => e
       raise DatabaseError, e.message
     end
-    setting.persisted?
   end
 
   def self.get(key)
@@ -33,6 +28,21 @@ class Setting < ActiveRecord::Base
     end
   rescue ActiveRecord::ActiveRecordError => e
     raise DatabaseError, e.message
+  end
+
+  private
+  def self.create_or_update(key, value)
+    setting = nil
+    Setting.transaction do
+      setting = self.find_by(key: key) || self.new(key: key)
+      setting.value = value
+      setting.save!
+    end
+    setting
+  end
+
+  def self.invalidate_cache!(key)
+    Rails.cache.delete "setting/#{key}"
   end
 
 end

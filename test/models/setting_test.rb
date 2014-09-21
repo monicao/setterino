@@ -61,9 +61,10 @@ describe Setting do
 
     it "should retrieve values from the cache" do
       Setting.store "max_connect_retry", 4
+      Setting.expects(:find_by).once
       Setting.get "max_connect_retry"
       Setting.expects(:find_by).never
-      Setting.get("max_connect_retry").must_equal 4
+      Setting.get("max_connect_retry")
     end
 
     it "should invalidate cache when values are updated" do
