@@ -22,8 +22,7 @@ describe Setting do
     it "should update a value" do
       Setting.store "admin_email", "admin@gmail.com"
       Setting.store "admin_email", "new_admin@gmail.com"
-      Setting.count.must_equal 1
-      Setting.last.reload.value.must_equal "new_admin@gmail.com"
+      Setting.get("admin_email").must_equal "new_admin@gmail.com"
     end
 
     it "should not save a setting without a value" do
@@ -72,7 +71,7 @@ describe Setting do
       Setting.expects(:find_by).once
       Setting.get "max_connect_retry"
       Setting.expects(:find_by).never
-      Setting.get("max_connect_retry")
+      Setting.get "max_connect_retry"
     end
 
     it "should invalidate cache when values are updated" do
