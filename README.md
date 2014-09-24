@@ -5,19 +5,35 @@ Sample code that stores application settings in a Rails model called `Setting`. 
 ### Usage
 
 ```ruby
-  # Hash-like syntax
-  Setting[:max_connection_retry] = 5
-  #=> true
+#
+# Hash-like syntax
+#
 
-  Setting[:max_connection_retry]
-  #=> 5
+Setting[:max_connection_retry] = 5
+#=> true
 
-  # More traditional class-method approach
-  Setting.store :max_connection_retry, 5
-  #=> true
+Setting[:max_connection_retry]
+#=> 5
 
-  Setting.get :max_connection_retry
-  #=> 5
+#
+# ... or class methods
+#
+
+Setting.store :max_connection_retry, 5
+#=> true
+
+Setting.get :max_connection_retry
+#=> 5
+
+Setting.get :key_that_doesnt_exist
+#=> nil
+
+#
+# Error Handling
+#
+
+Setting[nil] = "something"
+# raises Setting::InvalidKey: Validation failed: Key can't be blank
 ```
 
 ### Caching
