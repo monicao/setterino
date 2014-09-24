@@ -22,6 +22,7 @@ class Setting < ActiveRecord::Base
         raise DatabaseError, e.message
       end
     end
+    alias_method :[]=, :store
 
     def get(key)
       Rails.cache.fetch "setting/#{key}" do
@@ -30,6 +31,7 @@ class Setting < ActiveRecord::Base
     rescue ActiveRecord::ActiveRecordError => e
       raise DatabaseError, e.message
     end
+    alias_method :[], :get
 
     private
     def create_or_update(key, value)

@@ -8,6 +8,9 @@ describe Setting do
   
   describe "::store" do
     it "must store a key and a value" do
+      Setting[:admin_email] = "admin2@gmail.com"
+      Setting[:admin_email].must_equal "admin2@gmail.com"
+
       Setting.store("admin_email", "admin@gmail.com").must_equal true
     end
 
@@ -45,6 +48,11 @@ describe Setting do
   end
 
   describe "::get" do
+    it "should retrieve a value using the badass [] syntax" do
+      Setting.store "max_connect_retry", 4
+      Setting[:max_connect_retry].must_equal 4
+    end
+
     it "should retrieve a value in the original data type" do
       Setting.store "max_connect_retry", 4
       Setting.get("max_connect_retry").must_equal 4
