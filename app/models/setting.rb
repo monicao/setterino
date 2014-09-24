@@ -9,41 +9,42 @@ class Setting < ActiveRecord::Base
 
   validates :key, presence: true, uniqueness: true
 
-  def self.store(key, value)
-    raise ValueTooLong if value.to_json.length > MAX_VALUE_LENGTH
-    begin
-      setting = self.create_or_update key, value
-      self.invalidate_cache! key
-      setting.persisted?
-    rescue ActiveRecord::RecordInvalid => e
-      raise InvalidKey, e.message
+  class << self
+    def store(key, value)
+      raise ValueTooLong if value.to_json.length > MAX_VALUE_LENGTH
+      begin
+        setting = create_or_update key, value
+        invalidate_cache! key
+        setting.persisted?
+      rescue ActiveRecord::RecordInvalid => e
+        raise InvalidKey, e.message
+      rescue ActiveRecord::ActiveRecordError => e
+        raise DatabaseError, e.message
+      end
+    end
+
+    def get(key)
+      Rails.cache.fetch "setting/#{key}" do
+        find_by(key: key).try(:value)
+      end
     rescue ActiveRecord::ActiveRecordError => e
       raise DatabaseError, e.message
     end
-  end
 
-  def self.get(key)
-    Rails.cache.fetch "setting/#{key}" do
-      self.find_by(key: key).try(:value)
+    private
+    def create_or_update(key, value)
+      setting = nil
+      Setting.transaction do
+        setting = find_by(key: key) || new(key: key)
+        setting.value = value
+        setting.save!
+      end
+      setting
     end
-  rescue ActiveRecord::ActiveRecordError => e
-    raise DatabaseError, e.message
-  end
 
-  private
-  def self.create_or_update(key, value)
-    setting = nil
-    Setting.transaction do
-      setting = self.find_by(key: key) || self.new(key: key)
-      setting.value = value
-      setting.save!
+    def invalidate_cache!(key)
+      Rails.cache.delete "setting/#{key}"
     end
-    setting
   end
-
-  def self.invalidate_cache!(key)
-    Rails.cache.delete "setting/#{key}"
-  end
-
 end
 
